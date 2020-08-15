@@ -125,7 +125,7 @@ class UnsPruningEnv:
                 if new_rec:
                     reward > self.best_reward
                     temp_dir = os.path.abspath(os.path.join(self.export_path, os.pardir))
-                    temp_path = os.path.join(temp_dir,'temp_{p_ratio}.tar'.format(self.preserve_ratio))
+                    temp_path = os.path.join(temp_dir,'temp_{p_ratio}.tar'.format(p_ratio=self.preserve_ratio))
                     torch.save(self.best_state_dict, temp_path)
                     os.rename(temp_path, self.export_path)
             return obs, reward, done, info_set
