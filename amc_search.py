@@ -173,7 +173,10 @@ def train(num_episode, agent, env, output):
                 tfwriter.add_scalar('preserve_rate/{}'.format(i), preserve_rate, episode)
 
             text_writer.write('best reward: {}\n'.format(env.best_reward))
-            text_writer.write('best policy: {}\n'.format(env.best_strategy))
+            text_writer.write('best policy: {}\n'.format(env.best_strategy))     
+
+            text_writer.flush()
+            os.fsync(text_writer.fileno())                     
     text_writer.close()
 
 
