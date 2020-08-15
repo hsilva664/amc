@@ -13,8 +13,6 @@ from env.uns_pruning_env import UnsPruningEnv
 from lib.agent import DDPG
 from lib.utils import get_output_folder
 
-from tensorboardX import SummaryWriter
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='AMC search script')
@@ -163,15 +161,6 @@ def train(num_episode, agent, env, output):
             episode += 1
             T = []
 
-            tfwriter.add_scalar('reward/last', final_reward, episode)
-            tfwriter.add_scalar('reward/best', env.best_reward, episode)
-            tfwriter.add_scalar('info/accuracy', info['accuracy'], episode)
-            tfwriter.add_scalar('info/compress_ratio', info['compress_ratio'], episode)
-            tfwriter.add_text('info/best_policy', str(env.best_strategy), episode)
-            # record the preserve rate for each layer
-            for i, preserve_rate in enumerate(env.strategy):
-                tfwriter.add_scalar('preserve_rate/{}'.format(i), preserve_rate, episode)
-
             text_writer.write('best reward: {}\n'.format(env.best_reward))
             text_writer.write('best policy: {}\n'.format(env.best_strategy))     
 
@@ -204,7 +193,6 @@ if __name__ == "__main__":
         base_folder_name = base_folder_name + '_' + args.suffix
     args.output = get_output_folder(args.output, base_folder_name)
     print('=> Saving logs to {}'.format(args.output))
-    tfwriter = SummaryWriter(logdir=args.output)
     text_writer = open(os.path.join(args.output, 'log.txt'), 'w')
     print('=> Output path: {}...'.format(args.output))
 

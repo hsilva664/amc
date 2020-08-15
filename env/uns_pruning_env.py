@@ -70,7 +70,7 @@ class UnsPruningEnv:
 
         self.reward = eval(args.reward)
 
-        self.best_reward = -math.inf
+        self.best_reward = -9999
         self.best_strategy = None
         self.best_d_prime_list = None
 
@@ -86,7 +86,7 @@ class UnsPruningEnv:
         # prune and update action
         action, d_prime, preserve_idx = self.prune_kernel(self.prunable_idx[self.cur_ind], action, preserve_idx)
 
-        self.index_buffer[self.prunable_idx[self.cur_ind]] = preserve_idx.copy()
+        self.index_buffer[self.prunable_idx[self.cur_ind]] = copy.deepcopy(preserve_idx)
 
         # if self.export_model:  # export checkpoint
         #     print('# Pruning {}: ratio: {}, d_prime: {}'.format(self.cur_ind, action, d_prime))
@@ -105,7 +105,7 @@ class UnsPruningEnv:
             acc_t2 = time.time()
             self.val_time = acc_t2 - acc_t1
             compress_ratio = current_wrem * 1. / self.org_model_size
-            info_set = {'compress_ratio': compress_ratio, 'accuracy': acc, 'strategy': self.strategy.copy()}
+            info_set = {'compress_ratio': compress_ratio, 'accuracy': acc, 'strategy': copy.deepcopy(self.strategy)}
             reward = self.reward(self, acc, None)
 
             new_rec = False
@@ -113,13 +113,13 @@ class UnsPruningEnv:
                 new_rec = True
                 self.best_state_dict = copy.deepcopy(self.model.state_dict())
                 self.best_reward = reward
-                self.best_strategy = self.strategy.copy()
-                self.best_d_prime_list = self.d_prime_list.copy()
+                self.best_strategy = copy.deepcopy(self.strategy)
+                self.best_d_prime_list = copy.deepcopy(self.d_prime_list)
                 prGreen('New best reward: {:.4f}, acc: {:.4f}, compress: {:.4f}'.format(self.best_reward, acc, compress_ratio))
                 prGreen('New best policy: {}'.format(self.best_strategy))
                 prGreen('New best d primes: {}'.format(self.best_d_prime_list))
 
-            obs = self.layer_embedding[self.cur_ind, :].copy()  # actually the same as the last state
+            obs = copy.deepcopy(self.layer_embedding[self.cur_ind, :])  # actually the same as the last state
             done = True
             if self.export_model:  # export state dict
                 if new_rec:
@@ -139,7 +139,7 @@ class UnsPruningEnv:
         self.layer_embedding[self.cur_ind][-3] = self._cur_reduced() * 1. / self.org_model_size  # reduced
         self.layer_embedding[self.cur_ind][-2] = sum(self.wsize_list[self.cur_ind + 1:]) * 1. / self.org_model_size  # rest
         self.layer_embedding[self.cur_ind][-1] = self.strategy[-1]  # last action
-        obs = self.layer_embedding[self.cur_ind, :].copy()
+        obs = copy.deepcopy(self.layer_embedding[self.cur_ind, :])
 
         return obs, reward, done, info_set
 
@@ -154,7 +154,7 @@ class UnsPruningEnv:
         self.layer_embedding[:, -1] = 1.
         self.layer_embedding[:, -2] = 0.
         self.layer_embedding[:, -3] = 0.
-        obs = self.layer_embedding[0].copy()
+        obs = copy.deepcopy(self.layer_embedding[0])
         obs[-2] = sum(self.wsize_list[1:]) * 1. / sum(self.wsize_list)
         self.extract_time = 0
         self.fit_time = 0

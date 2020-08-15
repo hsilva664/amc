@@ -147,7 +147,8 @@ def get_output_folder(parent_dir, env_name):
     parent_dir/run_dir
       Path to this run's save directory.
     """
-    os.makedirs(parent_dir, exist_ok=True)
+    if not os.path.isdir(parent_dir):
+        os.makedirs(parent_dir)
     experiment_id = 0
     for folder_name in os.listdir(parent_dir):
         if not os.path.isdir(os.path.join(parent_dir, folder_name)):
@@ -162,7 +163,8 @@ def get_output_folder(parent_dir, env_name):
 
     parent_dir = os.path.join(parent_dir, env_name)
     parent_dir = parent_dir + '-run{}'.format(experiment_id)
-    os.makedirs(parent_dir, exist_ok=True)
+    if not os.path.isdir(parent_dir):
+        os.makedirs(parent_dir)
     return parent_dir
 
 
