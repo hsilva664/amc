@@ -89,17 +89,12 @@ def get_split_dataset(dset_name, batch_size, n_worker, val_size, data_root='../d
 
     print('=> Preparing data: {}...'.format(dset_name))
     if dset_name == 'cifar10':
-        transform_train = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-        transform_test = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-        trainset = torchvision.datasets.CIFAR100(root=data_root, train=True, download=True, transform=transform_train)
+
+        mean, std = [x / 255 for x in [125.3, 123.0, 113.9]],  [x / 255 for x in [63.0, 62.1, 66.7]]
+        transform_train = transforms.Compose([transforms.RandomHorizontalFlip(), transforms.RandomCrop(32, padding=4), transforms.ToTensor(), transforms.Normalize(mean, std)])
+        transform_test = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)]) 
+
+        trainset = torchvision.datasets.CIFAR10(root=data_root, train=True, download=True, transform=transform_train)
         if use_real_val:  # split the actual val set
             valset = torchvision.datasets.CIFAR10(root=data_root, train=False, download=True, transform=transform_test)
             n_val = len(valset)
@@ -110,12 +105,25 @@ def get_split_dataset(dset_name, batch_size, n_worker, val_size, data_root='../d
             train_idx = list(range(len(trainset)))  # all train set for train
         else:  # split the train set
             valset = torchvision.datasets.CIFAR10(root=data_root, train=True, download=True, transform=transform_test)
-            n_train = len(trainset)
-            indices = list(range(n_train))
-            # now shuffle the indices
-            np.random.shuffle(indices)
-            assert val_size < n_train
-            train_idx, val_idx = indices[val_size:], indices[:val_size]
+            n_classes = 10
+
+            assert val_size < len(trainset)
+
+            label_dict = {}
+            for idx in range(len(trainset)):
+                _, label = trainset[idx]
+                if label not in label_dict:
+                    label_dict[label] = [idx]
+                else:
+                    label_dict[label].append(idx)
+
+            train_idx = []
+            val_idx = []
+            for label, idxs in label_dict.items():
+                np.random.shuffle(idxs)
+                # possible bug here
+                train_idx += idxs[int(val_size/n_classes):]
+                val_idx += idxs[:int(val_size/n_classes)]
 
         train_sampler = index_sampler(train_idx)
         val_sampler = index_sampler(val_idx)

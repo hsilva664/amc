@@ -236,7 +236,7 @@ class ChannelPruningEnv:
         if not self.export_model:  # pad, pseudo compress
             rec_weight_pad = np.zeros_like(weight)
             rec_weight_pad[:, mask, :, :] = rec_weight
-            rec_weight = rec_weight_pad
+            rec_weight = rec_weight_pad           
 
         if op_type == 'Linear':
             rec_weight = rec_weight.squeeze()
